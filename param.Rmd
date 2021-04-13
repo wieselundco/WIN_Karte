@@ -29,15 +29,17 @@ benachbarte_gemeinden <- gemeinden %>%
 
 #### [Zurück zur Übersicht](index.html)
 
-Gemeinden im Projektgebiet "`r params$projektbezeichnung`": 
-```{r, results='asis'}
-pander::pandoc.list(projektgebiet$NAME)
-```
 
-Karte der Gemeinden im Projektgebiet (rot) sowie die benachbarten Gemeinden (hellblau).
-```{r, fig.width=12, fig.height=12}
+Karte mit den Gemeinden im Projektgebiet (rot) sowie den benachbarten Gemeinden (hellblau).
+```{r, fig.width=10, fig.height=10}
 tm_shape(projektgebiet) + tm_polygons(col = "red", zindex = 300) +
   tm_shape(benachbarte_gemeinden) + tm_polygons(popup.vars = "NAME", alpha = 0.4, col = "lightblue") +
   tm_basemap(leaflet::providers$OpenStreetMap)
+```
+
+
+Gemeinden im Projektgebiet "`r params$projektbezeichnung`": 
+```{r, results='asis'}
+pander::pandoc.list(projektgebiet$NAME)
 ```
 

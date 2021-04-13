@@ -9,14 +9,35 @@ out_dir: "docs"
 ```{r, echo = FALSE, results="asis", message=FALSE, warning=FALSE}
 library(pander)
 library(tidyverse)
+library(tmap)
+
+tmap_mode("view")
 
 
+```
+
+
+```{r, echo = FALSE, results="asis", message=FALSE, warning=FALSE}
 files <- list.files("docs")
 files <- files[!files == "index.html"]
 files <- setNames(files, str_replace_all(str_remove(files,".html"),"\\.", " "))
 
 cat(paste0("- ", imap_chr(files,~pandoc.link.return(.x,.y))),sep = " \n ")
 
+
+
+
+# gemeinden_projekte_smry <- gemeinden_projekte %>%
+#   group_by(projektbezeichnung, stand) %>%
+#   summarise(projektperimeter_gemeinde = paste(NAME, collapse = ", "))
+
+
+load("gemeinden_projekte.Rda")
+
+
+gemeinden_projekte %>% 
+  transmute(Gemeinde = paste0(NAME," (",projektbezeichnung,")"),projektbezeichnung) %>%
+  tm_shape(name = "Projekte") + tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = FALSE, popup.vars = c("Gemeinde"))
 
 ```
 
