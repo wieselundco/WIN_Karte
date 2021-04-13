@@ -1,0 +1,119 @@
+---
+title: "Untitled"
+output: 
+  html_document: default
+---
+
+```{r}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+library(dplyr)
+library(readr)
+library(tidyr)
+library(sf)
+library(stringr)
+
+gemeinden <- read_sf("C:/Users/rata/Geodata/vector/swissBOUNDARIES3D/swissBOUNDARIES3D.gpkg", layer = "Hoheitsgebiet")
+
+
+projekte <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Projekte.csv") %>%
+  janitor::clean_names()
+
+
+gemeinden_projekte <- gemeinden %>% 
+  select(NAME, KANTONSNUM,BEZIRKSNUM) %>%
+  full_join(projekte, by = c("NAME" = "projektperimeter_gemeinde")) %>%
+  filter(!is.na(projektbezeichnung)) %>%
+  st_zm()
+
+
+save(gemeinden_projekte, file = "gemeinden_projekte.Rda")
+
+gemeinden <- gemeinden[,"NAME"]
+
+save(gemeinden, file = "gemeinden.Rda")
+```
+
+
+```{r}
+render_report <- function(projektbezeichnung) {
+
+  out_file <- file.path("docs",paste0(make.names(projektbezeichnung),".html"))
+
+  parameters <- list(projektbezeichnung = projektbezeichnung)
+
+  rmarkdown::render("param.Rmd", output_file = out_file, params = parameters)
+  invisible(TRUE)
+}
+
+render_report("Urner Reusstal")
+
+
+map(unique(gemeinden_projekte$projektbezeichnung), ~render_report(.x))
+
+
+rmarkdown::render("index.Rmd",output_file = "docs/index.html")
+
+
+
+```
+
+
+```{r}
+library(tmap)
+library(mapview)
+
+
+# gemeinden_projekte_smry <- gemeinden_projekte %>%
+#   group_by(projektbezeichnung, stand) %>%
+#   summarise(projektperimeter_gemeinde = paste(NAME, collapse = ", "))
+
+
+tmap_mode("view")
+
+
+gemeinden_projekte %>% 
+  transmute(Gemeinde = paste0(NAME," (",projektbezeichnung,")"),projektbezeichnung) %>%
+  tm_shape(name = "Projekte") + tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = FALSE, popup.vars = c("Gemeinde"))
+  
+
+
+
+```
+
+```{r}
+
+# library(RColorBrewer)
+# mycols <- colorRampPalette(brewer.pal(9, "Set1"))(nrow(gemeinden_projekte_smry))
+
+# remove(p)
+
+# p <- tm_shape(gemeinden) + tm_polygons(popup.vars = "NAME")
+# for(row in seq_len(nrow(gemeinden_projekte_smry))){
+#   
+#   layer <- tm_shape(gemeinden_projekte_smry[row,],name = gemeinden_projekte_smry$projektbezeichnung[row],bbox = st_bbox(gemeinden_projekte_smry)) + 
+#     tm_polygons(col = mycols[row])
+#   if(!exists("p")){
+#     p <- layer
+#   } else{
+#     p <- p + layer
+#   }
+# }
+
+# tmap_leaflet(p)
+# 
+# library(tidyverse)
+# map(seq_len(nrow(gemeinden_projekte_smry)),~ggplot(gemeinden_projekte_smry[.x,]) + geom_sf() + labs(title = gemeinden_projekte_smry$projektbezeichnung[.x]))
+# 
+# 
+# tm_shape(gemeinden) + tm_polygons() + tm_shape(gemeinden_projekte) + tm_polygons()
+# 
+# 
+# View(st_drop_geometry(gemeinden))
+
+
+```
+

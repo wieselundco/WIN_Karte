@@ -1,0 +1,43 @@
+---
+title: "Projektgebiet: `r params$projektbezeichnung`"
+output: html_document
+params:
+  projektbezeichnung: "Urner Reusstal"
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+
+library(tmap)
+library(sf)
+library(tidyverse)
+tmap::tmap_mode("view")
+```
+
+
+```{r}
+load("gemeinden_projekte.Rda")
+load("gemeinden.Rda")
+projektgebiet <- gemeinden_projekte %>%
+  filter(projektbezeichnung == params$projektbezeichnung)
+
+projektgebiet_union <- st_union(projektgebiet)
+
+benachbarte_gemeinden <- gemeinden %>%
+  filter(st_touches(gemeinden,projektgebiet_union,sparse = FALSE)[,1])
+```
+
+[Zurück zur Übersicht](index.html)
+
+Gemeinden im Projektgebiet: 
+```{r, results='asis'}
+pander::pandoc.list(projektgebiet$NAME)
+```
+
+Karte der Gemeinden im Projektgebiet (rot) sowie die benachbarten Gemeinden (hellblau).
+```{r, fig.width=12, fig.height=12}
+tm_shape(projektgebiet) + tm_polygons(col = "red", zindex = 300) +
+  tm_shape(benachbarte_gemeinden) + tm_polygons(popup.vars = "NAME", alpha = 0.4, col = "lightblue") +
+  tm_basemap(leaflet::providers$OpenStreetMap)
+```
+

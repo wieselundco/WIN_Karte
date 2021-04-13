@@ -1,0 +1,22 @@
+---
+title: WIN Projektgebiete
+subtitle: Übersichtskarten über alle Projketgebiete von WIN
+output: html_document
+out_dir: "docs"
+---
+
+
+```{r, echo = FALSE, results="asis", message=FALSE, warning=FALSE}
+library(pander)
+library(tidyverse)
+
+
+files <- list.files("docs")
+files <- files[!files == "index.html"]
+files <- setNames(files, str_replace_all(str_remove(files,".html"),"\\.", " "))
+
+cat(paste0("- ", imap_chr(files,~pandoc.link.return(.x,.y))),sep = " \n ")
+
+
+```
+
