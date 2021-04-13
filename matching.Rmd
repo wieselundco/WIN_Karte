@@ -53,11 +53,9 @@ map(unique(gemeinden_projekte$projektbezeichnung), ~render_report(.x))
 
 rmarkdown::render("index.Rmd",output_file = "docs/index.html")
 
-
-
 ```
 
-```{r, fig.width=10, fig.height=10}
+```{r}
 
 # library(RColorBrewer)
 # mycols <- colorRampPalette(brewer.pal(9, "Set1"))(nrow(gemeinden_projekte_smry))

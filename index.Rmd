@@ -6,7 +6,12 @@ out_dir: "docs"
 ---
 
 
-```{r, echo = FALSE, results="asis", message=FALSE, warning=FALSE}
+```{r, echo = FALSE}
+knitr::opts_chunk$set(results="asis", message=FALSE, warning=FALSE)
+```
+
+
+```{r}
 library(pander)
 library(tidyverse)
 library(tmap)
@@ -17,21 +22,19 @@ tmap_mode("view")
 ```
 
 
-```{r, echo = FALSE, results="asis", message=FALSE, warning=FALSE}
+### Detailkarten zu den einzelnen Projektgebieten
+
+```{r, results="asis"}
 files <- list.files("docs")
 files <- files[!files == "index.html"]
 files <- setNames(files, str_replace_all(str_remove(files,".html"),"\\.", " "))
 
 cat(paste0("- ", imap_chr(files,~pandoc.link.return(.x,.y))),sep = " \n ")
+```
 
+### Übersichtskarte
 
-
-
-# gemeinden_projekte_smry <- gemeinden_projekte %>%
-#   group_by(projektbezeichnung, stand) %>%
-#   summarise(projektperimeter_gemeinde = paste(NAME, collapse = ", "))
-
-
+```{r, fig.width=10, fig.height=10}
 load("gemeinden_projekte.Rda")
 
 
