@@ -49,11 +49,7 @@ render_report <- function(projektbezeichnung) {
   invisible(TRUE)
 }
 
-render_report("Urner Reusstal")
-
-
 map(unique(gemeinden_projekte$projektbezeichnung), ~render_report(.x))
-
 
 rmarkdown::render("index.Rmd",output_file = "docs/index.html")
 

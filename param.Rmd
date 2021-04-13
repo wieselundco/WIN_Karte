@@ -27,9 +27,9 @@ benachbarte_gemeinden <- gemeinden %>%
   filter(st_touches(gemeinden,projektgebiet_union,sparse = FALSE)[,1])
 ```
 
-[Zurück zur Übersicht](index.html)
+#### [Zurück zur Übersicht](index.html)
 
-Gemeinden im Projektgebiet: 
+Gemeinden im Projektgebiet "`r params$projektbezeichnung`": 
 ```{r, results='asis'}
 pander::pandoc.list(projektgebiet$NAME)
 ```
