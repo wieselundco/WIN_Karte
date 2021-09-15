@@ -23,13 +23,24 @@ projekte <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Projekte.csv") %>%
   janitor::clean_names()
 
 projekte_meta <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Zusatzinfo.csv") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  mutate(
+    projektbezeichnung = case_when(
+      projektbezeichnung == "Gantrisch"~"Naturpark Gantrisch",
+      projektbezeichnung == "Parc du Doubs"~"Parc de Doubs",
+      projektbezeichnung == "Réseaux La Frontière"~"Réseaux Frontière",
+      TRUE~projektbezeichnung
+    )
+  )
 
-anti_join(projekte,gemeinden, by = "projektperimeter_gemeinde")
+
+projekte <- left_join(projekte, projekte_meta, by = "projektbezeichnung")
+
+anti_join(projekte,gemeinden, by = "projektperimeter_gemeinde") %>%
+  select(projektbezeichnung, projektperimeter_gemeinde)
 
 # dni$meintest_du <- adist(dni$projektperimeter_gemeinde,gemeinden$projektperimeter_gemeinde) %>% 
 #   apply(1, function(x){gemeinden$projektperimeter_gemeinde[which.min(x)]})
-
 
 
 gemeinden_projekte <- gemeinden %>% 
@@ -42,19 +53,34 @@ gemeinden_projekte <- gemeinden %>%
 
 
 ```{r}
-render_report <- function(projektbezeichnung) {
+gemeinden_projekte2 <- gemeinden_projekte %>% 
+  select(-kantonsnummer, -bezirksnummer) %>%
+  relocate(projektbezeichnung)
 
-  out_file <- file.path("docs",paste0(make.names(projektbezeichnung),".html"))
 
-  parameters <- list(projektbezeichnung = projektbezeichnung)
 
-  rmarkdown::render("param.Rmd", output_file = out_file, params = parameters)
-  invisible(TRUE)
-}
+mymap <- tm_shape(gemeinden_projekte2, name = "Projekte") + 
+  tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,)
 
-map(unique(gemeinden_projekte$projektbezeichnung), ~render_report(.x))
+mymap
+tmap::tmap_save(mymap, "docs/index.html")
+```
 
-rmarkdown::render("index.Rmd",output_file = "docs/index.html")
+
+```{r}
+# render_report <- function(projektbezeichnung) {
+# 
+#   out_file <- file.path("docs",paste0(make.names(projektbezeichnung),".html"))
+# 
+#   parameters <- list(projektbezeichnung = projektbezeichnung)
+# 
+#   rmarkdown::render("param.Rmd", output_file = out_file, params = parameters)
+#   invisible(TRUE)
+# }
+# 
+# map(unique(gemeinden_projekte$projektbezeichnung), ~render_report(.x))
+# 
+# rmarkdown::render("index.Rmd",output_file = "docs/index.html")
 
 ```
 

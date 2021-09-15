@@ -29,17 +29,9 @@ tmap_mode("view")
 load("gemeinden_projekte.Rda")
 
 
-gemeinden_projekte <- gemeinden_projekte %>% 
-  transmute(
-    bez = projektperimeter_gemeinde,
-    Projekt = projektbezeichnung,
-    )
 
 
-mymap <- tm_shape(gemeinden_sel) + tm_polygons() + tm_shape(gemeinden_projekte, name = "Projekte") + tm_polygons(alpha = 0.5, col = "Projekt",legend.show = FALSE)
 
-
-tmap::tmap_save(mymap, "docs/index.html")
 
 st_touches(gemeinden_projekte, gemeinden, sparse = FALSE) %>%
   apply(2, any)
