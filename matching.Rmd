@@ -37,7 +37,8 @@ projekte_meta <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Zusatzinfo.csv") %
 projekte <- left_join(projekte, projekte_meta, by = "projektbezeichnung")
 
 anti_join(projekte,gemeinden, by = "projektperimeter_gemeinde") %>%
-  select(projektbezeichnung, projektperimeter_gemeinde)
+  select(projektbezeichnung, projektperimeter_gemeinde) %>%
+  kableExtra::kable() %>% kableExtra::kable_styling()
 
 # dni$meintest_du <- adist(dni$projektperimeter_gemeinde,gemeinden$projektperimeter_gemeinde) %>% 
 #   apply(1, function(x){gemeinden$projektperimeter_gemeinde[which.min(x)]})
@@ -60,7 +61,7 @@ gemeinden_projekte2 <- gemeinden_projekte %>%
 
 
 mymap <- tm_shape(gemeinden_projekte2, name = "Projekte") + 
-  tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,)
+  tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,popup.vars = c("projektbezeichnung", "projektperimeter_gemeinde", "stand", "laufzeit", "projektleiter", "tragerschaft"))
 
 mymap
 tmap::tmap_save(mymap, "docs/index.html")
