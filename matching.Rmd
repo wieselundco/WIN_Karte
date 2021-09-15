@@ -16,25 +16,28 @@ library(tidyr)
 library(sf)
 library(stringr)
 
-gemeinden <- read_sf("C:/Users/rata/Geodata/vector/swissBOUNDARIES3D/swissBOUNDARIES3D.gpkg", layer = "Hoheitsgebiet")
 
+gemeinden <- st_read("data/gemeinden.gpkg", query = "SELECT name as projektperimeter_gemeinde, kantonsnummer, bezirksnummer, geom FROM gemeinden;")
 
 projekte <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Projekte.csv") %>%
   janitor::clean_names()
 
+projekte_meta <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Zusatzinfo.csv") %>%
+  janitor::clean_names()
+
+anti_join(projekte,gemeinden, by = "projektperimeter_gemeinde")
+
+# dni$meintest_du <- adist(dni$projektperimeter_gemeinde,gemeinden$projektperimeter_gemeinde) %>% 
+#   apply(1, function(x){gemeinden$projektperimeter_gemeinde[which.min(x)]})
+
+
 
 gemeinden_projekte <- gemeinden %>% 
-  select(NAME, KANTONSNUM,BEZIRKSNUM) %>%
-  full_join(projekte, by = c("NAME" = "projektperimeter_gemeinde")) %>%
+  left_join(projekte, by = "projektperimeter_gemeinde") %>%
   filter(!is.na(projektbezeichnung)) %>%
   st_zm()
 
 
-save(gemeinden_projekte, file = "gemeinden_projekte.Rda")
-
-gemeinden <- gemeinden[,"NAME"]
-
-save(gemeinden, file = "gemeinden.Rda")
 ```
 
 
@@ -55,36 +58,4 @@ rmarkdown::render("index.Rmd",output_file = "docs/index.html")
 
 ```
 
-```{r}
-
-# library(RColorBrewer)
-# mycols <- colorRampPalette(brewer.pal(9, "Set1"))(nrow(gemeinden_projekte_smry))
-
-# remove(p)
-
-# p <- tm_shape(gemeinden) + tm_polygons(popup.vars = "NAME")
-# for(row in seq_len(nrow(gemeinden_projekte_smry))){
-#   
-#   layer <- tm_shape(gemeinden_projekte_smry[row,],name = gemeinden_projekte_smry$projektbezeichnung[row],bbox = st_bbox(gemeinden_projekte_smry)) + 
-#     tm_polygons(col = mycols[row])
-#   if(!exists("p")){
-#     p <- layer
-#   } else{
-#     p <- p + layer
-#   }
-# }
-
-# tmap_leaflet(p)
-# 
-# library(tidyverse)
-# map(seq_len(nrow(gemeinden_projekte_smry)),~ggplot(gemeinden_projekte_smry[.x,]) + geom_sf() + labs(title = gemeinden_projekte_smry$projektbezeichnung[.x]))
-# 
-# 
-# tm_shape(gemeinden) + tm_polygons() + tm_shape(gemeinden_projekte) + tm_polygons()
-# 
-# 
-# View(st_drop_geometry(gemeinden))
-
-
-```
 

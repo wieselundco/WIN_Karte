@@ -22,15 +22,6 @@ tmap_mode("view")
 ```
 
 
-### Detailkarten zu den einzelnen Projektgebieten
-
-```{r, results="asis"}
-files <- list.files("docs")
-files <- files[!files == "index.html"]
-files <- setNames(files, str_replace_all(str_remove(files,".html"),"\\.", " "))
-
-cat(paste0("- ", imap_chr(files,~pandoc.link.return(.x,.y))),sep = " \n ")
-```
 
 ### Übersichtskarte
 
@@ -38,9 +29,32 @@ cat(paste0("- ", imap_chr(files,~pandoc.link.return(.x,.y))),sep = " \n ")
 load("gemeinden_projekte.Rda")
 
 
-gemeinden_projekte %>% 
-  transmute(Gemeinde = paste0(NAME," (",projektbezeichnung,")"),projektbezeichnung) %>%
-  tm_shape(name = "Projekte") + tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = FALSE, popup.vars = c("Gemeinde"))
+gemeinden_projekte <- gemeinden_projekte %>% 
+  transmute(
+    bez = projektperimeter_gemeinde,
+    Projekt = projektbezeichnung,
+    )
 
+
+mymap <- tm_shape(gemeinden_sel) + tm_polygons() + tm_shape(gemeinden_projekte, name = "Projekte") + tm_polygons(alpha = 0.5, col = "Projekt",legend.show = FALSE)
+
+
+tmap::tmap_save(mymap, "docs/index.html")
+
+st_touches(gemeinden_projekte, gemeinden, sparse = FALSE) %>%
+  apply(2, any)
+
+
+
+gemeinden_sel <- gemeinden[gemeinden_projekte,,op = st_touches]
+
+
+
+gemeinden_projekte %>%
+  group_by(projektbezeichnung) %>%
+  summarise() %>%
+  tm_shape() + tm_polygons()
+
+plot(gemeinden_projekte, max.plot = 1)
 ```
 
