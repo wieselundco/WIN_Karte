@@ -52,6 +52,22 @@ gemeinden_projekte <- gemeinden %>%
 ```
 
 
+Check individual projects
+
+```{r}
+
+gemeinden_projekte_filter <- filter(gemeinden_projekte, projektbezeichnung == "Schaffhausen") %>% st_union()
+
+gemeinden_filter <- gemeinden[st_touches(gemeinden, gemeinden_projekte_filter, sparse = FALSE),]
+
+tm_shape(gemeinden_filter)  + tm_polygons() +
+tm_shape(gemeinden_projekte_filter) + tm_borders(col = "red") 
+  
+
+```
+
+
+
 ```{r}
 gemeinden_projekte2 <- gemeinden_projekte %>% 
   select(-kantonsnummer, -bezirksnummer, -projektperimeter_gemeinde) %>%
@@ -60,23 +76,24 @@ gemeinden_projekte2 <- gemeinden_projekte %>%
   summarise(.groups = "drop")
 
 
-mycols <- colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(nrow(gemeinden_projekte2))
+gemeinden_projekte2$mycols <- colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(nrow(gemeinden_projekte2))
 
-shapes <- gemeinden_projekte2 %>%
-  select(projektbezeichnung) %>%
+
+
+mymap <- gemeinden_projekte2 %>%
   split(.$projektbezeichnung) %>%
-  lapply(function(x){
-    tm_shape(x) + tm_polygons()
-  })
-
-
-purrr::accumulate(shape, )
-
-mymap <- tm_shape(gemeinden_projekte2, name = "Projekte") + 
-  tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,popup.vars = c("projektbezeichnung", "stand", "laufzeit", "projektleiter", "traegerschaft"))
+  purrr::imap(function(x,y){
+    col <- unique(x$mycols)
+    tm_shape(x,name = y, bbox = st_bbox(gemeinden_projekte2)) + tm_polygons(col = col,alpha = 0.8) + tm_text(text = "projektbezeichnung")
+  }) %>%
+  purrr::reduce(function(x, y){x+y})
 
 mymap
-tmap::tmap_save(mymap, "docs/index.html")
+
+# mymap <- tm_shape(gemeinden_projekte2, name = "Projekte") + 
+#   tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,popup.vars = c("projektbezeichnung", "stand", "laufzeit", "projektleiter", "traegerschaft"))
+
+tmap::tmap_save(mymap, "docs/index.html", title = "Projekte WIN Wieselnetz")
 ```
 
 
