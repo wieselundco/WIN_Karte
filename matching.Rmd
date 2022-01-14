@@ -20,7 +20,10 @@ library(stringr)
 gemeinden <- st_read("data/gemeinden.gpkg", query = "SELECT name as projektperimeter_gemeinde, kantonsnummer, bezirksnummer, geom FROM gemeinden;")
 
 projekte <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Projekte.csv") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  group_by(across()) %>%
+  summarise(.groups = "drop")
+
 
 projekte_meta <- read_csv("data/Projekte_nach_Gemeinde.xlsx - Zusatzinfo.csv") %>%
   janitor::clean_names() %>%
@@ -40,10 +43,6 @@ anti_join(projekte,gemeinden, by = "projektperimeter_gemeinde") %>%
   select(projektbezeichnung, projektperimeter_gemeinde) %>%
   kableExtra::kable() %>% kableExtra::kable_styling()
 
-# dni$meintest_du <- adist(dni$projektperimeter_gemeinde,gemeinden$projektperimeter_gemeinde) %>% 
-#   apply(1, function(x){gemeinden$projektperimeter_gemeinde[which.min(x)]})
-
-
 gemeinden_projekte <- gemeinden %>% 
   left_join(projekte, by = "projektperimeter_gemeinde") %>%
   filter(!is.na(projektbezeichnung)) %>%
@@ -55,13 +54,26 @@ gemeinden_projekte <- gemeinden %>%
 
 ```{r}
 gemeinden_projekte2 <- gemeinden_projekte %>% 
-  select(-kantonsnummer, -bezirksnummer) %>%
-  relocate(projektbezeichnung)
+  select(-kantonsnummer, -bezirksnummer, -projektperimeter_gemeinde) %>%
+  relocate(projektbezeichnung) %>%
+  group_by(across(-matches("geom"))) %>%
+  summarise(.groups = "drop")
 
 
+mycols <- colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(nrow(gemeinden_projekte2))
+
+shapes <- gemeinden_projekte2 %>%
+  select(projektbezeichnung) %>%
+  split(.$projektbezeichnung) %>%
+  lapply(function(x){
+    tm_shape(x) + tm_polygons()
+  })
+
+
+purrr::accumulate(shape, )
 
 mymap <- tm_shape(gemeinden_projekte2, name = "Projekte") + 
-  tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,popup.vars = c("projektbezeichnung", "projektperimeter_gemeinde", "stand", "laufzeit", "projektleiter", "tragerschaft"))
+  tm_polygons(alpha = 0.5, col = "projektbezeichnung",legend.show = TRUE,popup.vars = c("projektbezeichnung", "stand", "laufzeit", "projektleiter", "traegerschaft"))
 
 mymap
 tmap::tmap_save(mymap, "docs/index.html")
